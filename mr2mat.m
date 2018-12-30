@@ -3,24 +3,27 @@
 
 clear;clc
 
-%% add the path of fieldtrip
+%% Add the path of fieldtrip
 fieldtrip_path = '/Users/ke/toolbox/fieldtrip-20180719';
 addpath(fieldtrip_path,'-end');
 ft_defaults
 
-%% add the path of original MRI
+
+%% Root directory of original MRI
 mri_root_path = '/Users/ke/OneDrive - UHN/MRI';
 
-% MRI file for PD patients
+% Subpath for PD patients
 % group = 'PD';
 % subjects = {'PD_A', 'PD_D', 'PD_E', 'PD_F', 'PD_G', 'PD_H', 'PD_J', 'PD_K', 'PD_L','PD_M', 'PD_O', 'PD_P', 'PD_Q', 'PD_R'};
 % states = {'On', 'Off'};
 
-% MRI file for health control
+% Subpath for health control
 group = 'OC';
 subjects = {'OC_B','OC_C','OC_D','OC_F','OC_G','OC_H','OC_J','OC_K','OC_L','OC_N','OC_O','OC_P','OC_Q','OC_R','OC_S'};
 states = {''};
 
+
+%% Transform for each subject during each state
 for i = 1:length(subjects)
     subject = subjects{i};
     fprintf('%s\n', subject);
