@@ -1,3 +1,4 @@
+% Localizing sources using beamformer techniques
 
 clear;clc
 
@@ -12,20 +13,20 @@ ft_defaults
 meg_root_path = 'rsMEG';
 mri_root_path = '/Users/ke/OneDrive - UHN/MRI';
 
+% Subpath of PD patients
 group = 'PD';
 subjects = {'PD_A', 'PD_D', 'PD_E', 'PD_F', 'PD_G', 'PD_H', 'PD_J', 'PD_K', 'PD_L','PD_M', 'PD_O', 'PD_P', 'PD_Q', 'PD_R'};
 states = {'Off', 'On'};
 
+% Subpath of health controls
 % group = 'OC';
 % subjects = {'OC_B', 'OC_C', 'OC_D', 'OC_F', 'OC_G', 'OC_H', 'OC_K', 'OC_L', 'OC_N', 'OC_O', 'OC_P', 'OC_Q', 'OC_R', 'OC_S'};
 % states = {''};
 
-
 file_name = 'ECLOS_tsss_mc_clean.mat';
 
-result_root_path = 'PAC_lcmv';
 
-%% Source reconstruction
+%% Source reconstruction for each subject during each state
 for i = 1:length(subjects)
     subject = subjects{i};
     fprintf('%s\n', subject);
@@ -35,11 +36,10 @@ for i = 1:length(subjects)
         
         meg_data_file = fullfile(meg_root_path, group, subject, state, file_name);
         load(meg_data_file);
-        
-        
+                
         % Computation of covariance matrix
         cfg                     = [];
-        cfg.trials              = 'all'; % trials
+        cfg.trials              = 'all'; 
         cfg.covariance          = 'yes';
         cfg.covariancewindow    = 'all';
         cfg.removemean          = 'yes';
@@ -48,7 +48,7 @@ for i = 1:length(subjects)
         % Load individual MRI, headmodel, and source model
         load(fullfile(mri_root_path, group, subject, state, 'mri_align.mat'));    % Individual aligned mri
         load(fullfile(mri_root_path, group, subject, state, 'vol.mat'));          % Individual volume model
-        load(fullfile(mri_root_path, group, subject, state, 'ROI_AAL90.mat'));     % MNI-aligned individual grids
+        load(fullfile(mri_root_path, group, subject, state, 'ROI_AAL90.mat'));    % MNI-aligned individual grids
         
         % Compute the leadfield
         cfg             = [];
@@ -81,5 +81,3 @@ for i = 1:length(subjects)
         save(fullfile(meg_root_path, group, subject, state, 'source_sam_ROI90.mat'), 'source');
     end
 end
-
-
