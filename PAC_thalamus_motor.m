@@ -13,10 +13,29 @@ ft_defaults
 PACtool_path = '/Users/ke/toolbox/PAC/PACtool';
 addpath(PACtool_path,'-end');
 
+%% MEG data
+% Root directory of MRI file
+meg_root_path = '/Users/ke/OneDrive - UHN/MEG';
+result_root_path = 'PAC_lcmv';
+
+% Subpath of PD patients
+group = 'PD';
+subjects = {'PD_D', 'PD_E', 'PD_F', 'PD_G', 'PD_A', 'PD_H', 'PD_J', 'PD_K', 'PD_L','PD_M', 'PD_O', 'PD_P', 'PD_Q', 'PD_R'};
+states = {'Off', 'On'}; 
+
+% Subpath of health controls
+% group = 'OC';
+% subjects = {'OC_B', 'OC_C', 'OC_D', 'OC_F', 'OC_G', 'OC_H', 'OC_K', 'OC_L', 'OC_N', 'OC_O', 'OC_P', 'OC_Q', 'OC_R', 'OC_S'};
+% states = {''};
+
+meg_file = 'ECLOS_tsss_mc_clean.mat';
+source_file = 'source_lcmv_ROI90.mat';
+
+
 %% Region of interesting
-load('template_ROI_AAL90.mat'); 
 ROI_label = {'Precentral_L','Precentral_R','Thalamus_L','Thalamus_R'};
 ROI_idx   = zeros(length(ROI_label),1);
+load('template_ROI_AAL90.mat'); 
 for i = 1:length(ROI_label)
     idx = find(strcmp(ROI_label{i}, template_ROI.label));
     if isempty(idx)
@@ -37,23 +56,6 @@ ph_freq_vec = [fp(1):dp:fp(2)];
 amp_freq_vec = [fa(1):da:fa(2)];
 npf = length(ph_freq_vec)-1;
 naf = length(amp_freq_vec)-1;
-
-%% MEG data
-% meg_root_path = '/Users/ke/OneDrive - UHN/MEG';
-meg_root_path = 'rsMEG';
-
-group = 'PD';
-subjects = {'PD_D', 'PD_E', 'PD_F', 'PD_G', 'PD_A', 'PD_H', 'PD_J', 'PD_K', 'PD_L','PD_M', 'PD_O', 'PD_P', 'PD_Q', 'PD_R'};
-states = {'Off', 'On'}; 
-
-% group = 'OC';
-% subjects = {'OC_B', 'OC_C', 'OC_D', 'OC_F', 'OC_G', 'OC_H', 'OC_K', 'OC_L', 'OC_N', 'OC_O', 'OC_P', 'OC_Q', 'OC_R', 'OC_S'};
-% states = {''};
-
-meg_file = 'ECLOS_tsss_mc_clean.mat';
-source_file = 'source_lcmv_ROI90.mat';
-
-result_root_path = 'PAC_lcmv2';
 
 
 %% Cacluate PAC for each subject
