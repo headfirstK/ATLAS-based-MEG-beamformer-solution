@@ -1,6 +1,17 @@
 
-% Reference patper: The Phase of Thalamic Alpha Activity Modulates Cortical
-% Gamma-Band Activity: Evidence from Resting-State MEG Recordings
+% Reference: 
+% [1] Roux, Frédéric, et al. "The phase of thalamic alpha activity modulates cortical gamma-band activity: evidence from     
+% resting-state MEG recordings." Journal of Neuroscience 33.45 (2013): 17827-17835.
+% [2] De Hemptinne, Coralie, et al. "Therapeutic deep brain stimulation reduces cortical phase-amplitude coupling in 
+% Parkinson's disease." Nature neuroscience 18.5 (2015): 779.
+% [3] Swann, Nicole C., et al. "Elevated synchrony in Parkinson disease detected with electroencephalography." Annals of 
+% neurology 78.5 (2015): 742-750.
+% [4] Cole, Scott R., et al. "Nonsinusoidal beta oscillations reflect cortical pathophysiology in Parkinson's disease." 
+% Journal of Neuroscience (2017): 2208-16.
+% [5] Olde Dubbelink, Kim TE, et al. "Disrupted brain network topology in Parkinson’s disease: a longitudinal 
+% magnetoencephalography study." Brain 137.1 (2013): 197-207.
+% [6] Hillebrand, Arjan, et al. "Direction of information flow in large-scale resting-state networks is frequency-dependent." 
+% Proceedings of the National Academy of Sciences 113.14 (2016): 3867-3872.
 
 clear;clc;
 
