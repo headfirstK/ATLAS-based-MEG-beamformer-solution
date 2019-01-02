@@ -14,7 +14,7 @@ PACtool_path = '/Users/ke/toolbox/PAC/PACtool';
 addpath(PACtool_path,'-end');
 
 %% MEG data
-% Root directory of MRI file
+% Root directory of MEG file
 meg_root_path = '/Users/ke/OneDrive - UHN/MEG';
 result_root_path = 'PAC_lcmv';
 
@@ -66,6 +66,7 @@ for i = 1:length(subjects)
     for j = 1:length(states)
         state = states{j};
         
+        % Load MEG data and spatial filter
         load(fullfile(meg_root_path, group, subject, state, meg_file));     % clean MEG data
         load(fullfile(meg_root_path, group, subject, state, source_file));  % source filter
         
@@ -85,12 +86,7 @@ for i = 1:length(subjects)
             end
         end
         
-%         cfg                 = [];
-%         cfg.hpfilter        = 'yes';
-%         cfg.hpfreq          = 13;      
-%         cfg.hpfiltord       = 4;
-%         source_sig          = ft_preprocessing(cfg, source_sig);
-        
+        % Cacluat PAC between ROIs
         pac_M1_l = zeros(naf,npf,ntrials);
         pac_M1_r = zeros(naf,npf,ntrials);
         pac_Tha_l = zeros(naf,npf,ntrials);
@@ -100,22 +96,30 @@ for i = 1:length(subjects)
         pac_Tha_M1_r = zeros(naf,npf,ntrials);
         pac_M1_Tha_r = zeros(naf,npf,ntrials);
         for k = 1:ntrials
-            source_M1_l    = source_sig.trial{k}(1, :)';
-            source_M1_r    = source_sig.trial{k}(2, :)';
-            source_Tha_l   = source_sig.trial{k}(3, :)';
-            source_Tha_r   = source_sig.trial{k}(4, :)';
+            source_M1_l    = source_sig.trial{k}(1, :)';    % Vitual signal in left M1
+            source_M1_r    = source_sig.trial{k}(2, :)';    % Vitual signal in right M1
+            source_Tha_l   = source_sig.trial{k}(3, :)';    % Vitual signal in left thalamus
+            source_Tha_r   = source_sig.trial{k}(4, :)';    % Vitual signal in right thalamus
             
             % Calculate PAC between thalamic and motor cortex
+            % PAC between left M1's beta phase and left M1's Gamma amplitude
             pac_M1_l(:,:,k) = PACgraph(source_M1_l, source_M1_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
+            % PAC between right M1's beta phase and right M1's Gamma amplitude
             pac_M1_r(:,:,k) = PACgraph(source_M1_r, source_M1_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
             
+            % PAC between left thalamus's beta phase and left thalamus's Gamma amplitude
             pac_Tha_l(:,:,k) = PACgraph(source_Tha_l, source_Tha_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
+            % PAC between right thalamus's beta phase and right thalamus's Gamma amplitude
             pac_Tha_r(:,:,k) = PACgraph(source_Tha_r, source_Tha_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
             
+            % PAC between left thalamus's beta phase and left M1's Gamma amplitude
             pac_Tha_M1_l(:,:,k) = PACgraph(source_Tha_l, source_M1_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
+            % PAC between left M1's beta phase and left thalamus's Gamma amplitude
             pac_M1_Tha_l(:,:,k) = PACgraph(source_M1_l, source_Tha_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
             
+            % PAC between righ thalamus's beta phase and right M1's Gamma amplitude
             pac_Tha_M1_r(:,:,k) = PACgraph(source_Tha_r, source_M1_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
+            % PAC between right M1's beta phase and right thalamus's Gamma amplitude
             pac_M1_Tha_r(:,:,k) = PACgraph(source_M1_r, source_Tha_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
         end
         
