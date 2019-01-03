@@ -56,18 +56,31 @@ for i = 1:length(ROI_label)
     end   
 end
 
+% ROI combination for PAC calculation
+comb = [1 1; 2 2; 3 3; 4 4; 1 3; 3 1; 2 4; 4 2];
+ncomb = length(comb);
+
+
 %% Parameters setting for PAC
 fp = [4 40];
 fa = [20 200];
 dp = 2;
 da = 4;
-width = 7;
-measure = 'mi';
-ph_freq_vec = [fp(1):dp:fp(2)];
-amp_freq_vec = [fa(1):da:fa(2)];
-npf = length(ph_freq_vec)-1;
-naf = length(amp_freq_vec)-1;
+pha_filt = 'morlet';
+amp_filt = 'morlet';
+pac_method = 'mi_tort';
 
+% Phase frequency [13 30] Hz
+ph_freq_vec = [fp(1):dp:fp(2)];
+npf = length(ph_freq_vec)-1;
+pf_idx1 = find(ph_freq_vec >= 13, 1, 'first');
+pf_idx2 = find(ph_freq_vec <= 30, 1, 'last');
+
+% Amplitude frequency [50 150] Hz
+amp_freq_vec = [fa(1):da:fa(2)];
+naf = length(amp_freq_vec)-1;
+af_idx1 = find(amp_freq_vec >= 50, 1, 'first');
+af_idx2 = find(amp_freq_vec <= 150, 1, 'last');
 
 %% Cacluate PAC for each subject
 for i = 1:length(subjects)
@@ -77,7 +90,7 @@ for i = 1:length(subjects)
     for j = 1:length(states)
         state = states{j};
         
-        % Load MEG data and spatial filter
+        % Load MEG and spatial filter
         load(fullfile(meg_root_path, group, subject, state, meg_file));     % clean MEG data
         load(fullfile(meg_root_path, group, subject, state, source_file));  % source filter
         
@@ -97,50 +110,36 @@ for i = 1:length(subjects)
             end
         end
         
-        % Cacluat PAC between ROIs
-        pac_M1_l = zeros(naf,npf,ntrials);
-        pac_M1_r = zeros(naf,npf,ntrials);
-        pac_Tha_l = zeros(naf,npf,ntrials);
-        pac_Tha_r = zeros(naf,npf,ntrials);
-        pac_Tha_M1_l = zeros(naf,npf,ntrials);
-        pac_M1_Tha_l = zeros(naf,npf,ntrials);
-        pac_Tha_M1_r = zeros(naf,npf,ntrials);
-        pac_M1_Tha_r = zeros(naf,npf,ntrials);
-        for k = 1:ntrials
-            source_M1_l    = source_sig.trial{k}(1, :)';    % Vitual signal in left M1
-            source_M1_r    = source_sig.trial{k}(2, :)';    % Vitual signal in right M1
-            source_Tha_l   = source_sig.trial{k}(3, :)';    % Vitual signal in left thalamus
-            source_Tha_r   = source_sig.trial{k}(4, :)';    % Vitual signal in right thalamus
-            
-            % Calculate PAC between thalamic and motor cortex
-            % PAC between left M1's beta phase and left M1's Gamma amplitude
-            pac_M1_l(:,:,k) = PACgraph(source_M1_l, source_M1_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            % PAC between right M1's beta phase and right M1's Gamma amplitude
-            pac_M1_r(:,:,k) = PACgraph(source_M1_r, source_M1_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            
-            % PAC between left thalamus's beta phase and left thalamus's Gamma amplitude
-            pac_Tha_l(:,:,k) = PACgraph(source_Tha_l, source_Tha_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            % PAC between right thalamus's beta phase and right thalamus's Gamma amplitude
-            pac_Tha_r(:,:,k) = PACgraph(source_Tha_r, source_Tha_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            
-            % PAC between left thalamus's beta phase and left M1's Gamma amplitude
-            pac_Tha_M1_l(:,:,k) = PACgraph(source_Tha_l, source_M1_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            % PAC between left M1's beta phase and left thalamus's Gamma amplitude
-            pac_M1_Tha_l(:,:,k) = PACgraph(source_M1_l, source_Tha_l, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            
-            % PAC between righ thalamus's beta phase and right M1's Gamma amplitude
-            pac_Tha_M1_r(:,:,k) = PACgraph(source_Tha_r, source_M1_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
-            % PAC between right M1's beta phase and right thalamus's Gamma amplitude
-            pac_M1_Tha_r(:,:,k) = PACgraph(source_M1_r, source_Tha_r, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
+        % Arrange data for PAC calculation
+        data = zeros(nsamples, ntrials, nROI);
+        for r = 1:nROI
+            for k = 1:ntrials
+                data(:,k,r) = source_sig.trial{k}(r, :)';
+            end
         end
         
+        % Calculate PAC between all the combinations of low-frequency bands and high-frequency bands
+        comod = cell(ncomb, 1);
+        label = cell(ncomb, 1);
+        for c = 1:ncomb
+            sig_mod = data(:,:,comb(c,1));
+            sig_pac = data(:,:,comb(c,2));
+            comod{c} = comodulogram(sig_mod, sig_pac, fs, ph_freq_vec, amp_freq_vec,'morlet','morlet','mi_tort');
+            
+            label{c} = [ROI_label{comb(c,1)} '(phase)-' ROI_label{comb(c,2)} '(amplitude) coupling'];                      
+        end             
         
-        %% Save result
+        % Averaging MI values over the beta range (13–30Hz) for the phase frequency, 
+        % and the broadband gamma range (50–150Hz) for the amplitude frequency.  
+        pac = zeros(ncomb, 1);
+        for c = 1:ncomb
+            pacmat = comod{c};
+            pac(c) = mean(mean(pacmat(af_idx1:af_idx2, pf_idx1:pf_idx2),1),2);
+        end 
+               
+        % Save result
         folder = fullfile(result_root_path, group, subject, state);
         mkdir(folder);
-        save(fullfile(folder, 'PAC_Tha_M1.mat'), 'source_sig', ...
-            'pac_M1_l', 'pac_M1_r', 'pac_Tha_l', 'pac_Tha_r',...
-            'pac_Tha_M1_l','pac_M1_Tha_l','pac_Tha_M1_r','pac_M1_Tha_r',...
-            'ph_freq_vec','amp_freq_vec'); 
+        save(fullfile(folder, 'PAC_Tha_M1.mat'), 'comod', 'pac', 'label'); 
     end
 end
